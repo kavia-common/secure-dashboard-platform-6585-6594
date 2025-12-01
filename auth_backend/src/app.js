@@ -8,10 +8,33 @@ const swaggerSpec = require('../swagger');
 // Initialize express app
 const app = express();
 
-// CORS with explicit origin
-const allowedOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+/**
+ * CORS configuration:
+ * - CORS_ORIGIN can be:
+ *   - a single origin string (default http://localhost:3000)
+ *   - a comma-separated list of origins
+ *   - '*' to reflect the request origin (useful for dev with credentials)
+ */
+const rawOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+let corsOrigin;
+if (rawOrigin === '*') {
+  // Reflect request origin for all requests (compatible with credentials: true)
+  corsOrigin = (origin, callback) => callback(null, true);
+} else if (rawOrigin.includes(',')) {
+  const whitelist = rawOrigin.split(',').map(o => o.trim());
+  corsOrigin = function (origin, callback) {
+    if (!origin) return callback(null, true); // non-browser or same-origin
+    if (whitelist.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  };
+} else {
+  corsOrigin = rawOrigin;
+}
+
 app.use(cors({
-  origin: allowedOrigin,
+  origin: corsOrigin,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
