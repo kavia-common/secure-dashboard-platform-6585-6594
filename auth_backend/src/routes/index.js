@@ -8,6 +8,7 @@ const router = express.Router();
  * @swagger
  * /:
  *   get:
+ *     tags: [Health]
  *     summary: Health endpoint
  *     responses:
  *       200:
