@@ -40,6 +40,21 @@ app.use(cors({
   credentials: true,
 }));
 
+// Handle preflight explicitly to ensure smooth CORS with credentials
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  if (typeof corsOrigin === 'function') {
+    // reflect request origin in preflight
+    const origin = req.get('Origin');
+    if (origin) res.header('Access-Control-Allow-Origin', origin);
+  } else if (typeof corsOrigin === 'string') {
+    res.header('Access-Control-Allow-Origin', corsOrigin);
+  }
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return res.sendStatus(204);
+});
+
 app.set('trust proxy', true);
 
 // Swagger docs with dynamic server URL
